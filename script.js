@@ -115,9 +115,9 @@ function startCountdown(){
 }
 function beginRace(){
  const r=state.currentRace;if(!r||r.finished)return;
- const now=performance.now();r.startedAt=now;r.lastNow=now;r.elapsed=0;r.paused=false;r.duration=state.settings.duration*1000;r.events=[];r.entries.forEach(e=>{e.speed=.19+Math.random()*.05;e.accel=0;e.progress=0;e.eventUntil=0;e.finished=false;e.finishTime=null});
+ const now=performance.now();r.startedAt=now;r.lastNow=now;r.elapsed=0;r.paused=false;r.duration=state.settings.duration*1000;r.events=[];r.nextQuackAt=1.4+Math.random()*1.8;r.entries.forEach(e=>{e.speed=.19+Math.random()*.05;e.accel=0;e.progress=0;e.eventUntil=0;e.finished=false;e.finishTime=null});
  $('#raceStatus').textContent='● LIVE';$('#pauseBtn').disabled=false;$('#goBtn').disabled=true;$('#progressLabel').textContent='THE POND IS IN MOTION!';
- logEvent('🏁','And they’re off! Every duck has a fresh chance at glory.');state.lastFrame=now;state.raf=requestAnimationFrame(frameRace);
+ logEvent('🏁','And they’re off! Every duck has a fresh chance at glory.');playQuack();state.lastFrame=now;state.raf=requestAnimationFrame(frameRace);
  if(state.settings.music)startMusic();
 }
 function frameRace(now){
@@ -142,10 +142,11 @@ function frameRace(now){
    e.accel*=Math.max(0,1-dt*.65);
    if(state.settings.events>0&&Math.random()<dt*state.settings.events*.19&&!e.finished){triggerRandomEvent(e,r)}
    if(e.progress>=100){e.progress=100;e.finished=true;e.finishTime=r.elapsed/1000}
-   const wrap=$(`[data-duck="${e.id}"]`);if(wrap){wrap.style.setProperty('--progress',e.progress+'%');wrap.classList.toggle('finished',e.finished)}
+   const wrap=$(`[data-duck="${e.id}"]`);if(wrap){wrap.style.left=`${8+e.progress*.78}%`;wrap.style.setProperty('--progress',e.progress+'%');wrap.classList.toggle('finished',e.finished)}
    const ripple=$(`[data-ripple="${e.id}"]`);if(ripple)ripple.style.setProperty('--progress',e.progress+'%');
  });
  updateProgress();renderLeaderboard();
+ if(r.elapsed/1000 >= (r.nextQuackAt||3)){playQuack();r.nextQuackAt=r.elapsed/1000+2.2+Math.random()*3.4;}
  const finishers=r.entries.filter(e=>e.finished).length;
  if(finishers===r.entries.length){finishRace(false);return}
  state.raf=requestAnimationFrame(frameRace);
@@ -175,7 +176,7 @@ function finishRace(manual=false){
  if(manual){let time=r.elapsed/1000;remaining.forEach((e,i)=>{e.progress=100;e.finished=true;e.finishTime=time+(i+1)*.001})}
  const ranking=[...r.entries].sort((a,b)=>{if(a.finishTime==null&&b.finishTime==null)return b.progress-a.progress;if(a.finishTime==null)return 1;if(b.finishTime==null)return -1;return a.finishTime-b.finishTime});
  // For a natural finish, the first crossing is the official winner; ties use the earliest high-resolution finish timestamp.
- ranking.forEach((e,i)=>{e.rank=i+1;const w=$(`[data-duck="${e.id}"]`);if(w){w.style.setProperty('--progress','100%');w.classList.add('finished')}});
+ ranking.forEach((e,i)=>{e.rank=i+1;const w=$(`[data-duck="${e.id}"]`);if(w){w.style.left='86%';w.style.setProperty('--progress','100%');w.classList.add('finished')}});
  r.ranking=ranking;r.endedAt=new Date().toISOString();r.durationActual=r.elapsed/1000;stopMusic();$('#raceStatus').textContent=manual?'MANUAL FINISH':'RACE COMPLETE';$('#pauseBtn').disabled=true;$('#skipBtn').disabled=true;$('#goBtn').disabled=true;$('#progressFill').style.width='100%';$('#progressPercent').textContent='100%';$('#progressLabel').textContent=manual?'MANUAL OVERRIDE — RESULTS RECORDED':'CHECKERED FLAG! THE RACE IS COMPLETE';
  playTone(740,.2,'triangle');setTimeout(()=>playTone(980,.35,'sine'),180);createConfetti();showWinner(ranking,manual);
  const record={id:uid(),mode:r.mode,date:r.endedAt,winner:{id:ranking[0].id,name:ranking[0].name,color:ranking[0].color,number:ranking[0].number},entries:ranking.map(e=>({id:e.id,name:e.name,color:e.color,number:e.number,memberCount:e.memberCount||1,members:e.members||[],finishTime:e.finishTime,progress:e.progress})),duration:r.durationActual,manual,events:r.events.slice(-30),intensity:state.settings.intensity};
@@ -193,6 +194,14 @@ function csvEscape(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
 function exportCSV(record=null){const races=record?[record]:state.history;if(!races.length){toast('There are no results to export yet.');return}const rows=[['Race ID','Date','Race Type','Place','Racer / Group','Members','Finish Time (s)','Winner','Manual Override','Random Events']];races.forEach(r=>r.entries.forEach((e,i)=>rows.push([r.id,r.date,r.mode,i+1,e.name,(e.members||[]).join('; '),e.finishTime==null?'':Number(e.finishTime).toFixed(3),r.winner?.name||'',r.manual?'Yes':'No',(r.events||[]).map(x=>`${x.name}: ${x.type}`).join('; ')])));const csv=rows.map(row=>row.map(csvEscape).join(',')).join('\r\n');downloadBlob('\ufeff'+csv,'duck-race-results.csv','text/csv;charset=utf-8')}
 function downloadBlob(content,name,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
 function audioCtx(){if(!state.audio){const C=window.AudioContext||window.webkitAudioContext;if(C)state.audio=new C()}if(state.audio?.state==='suspended')state.audio.resume();return state.audio}
+function playQuack(){
+ if(!state.settings.sound||$('#muteRaceBtn')?.textContent.includes('Sound off'))return;
+ try{const c=audioCtx();if(!c)return;const now=c.currentTime;const osc=c.createOscillator(),gain=c.createGain(),filter=c.createBiquadFilter();
+ osc.type='sawtooth';osc.frequency.setValueAtTime(520+Math.random()*100,now);osc.frequency.exponentialRampToValueAtTime(155+Math.random()*35,now+.19);
+ filter.type='lowpass';filter.frequency.value=1250;gain.gain.setValueAtTime(0.0001,now);gain.gain.exponentialRampToValueAtTime(Math.max(.008,(state.settings.sfxVolume/100)*.16),now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.23);
+ osc.connect(filter);filter.connect(gain);gain.connect(c.destination);osc.start(now);osc.stop(now+.24);
+ }catch{}
+}
 function playTone(freq=440,duration=.12,wave='sine'){if(!state.settings.sound||$('#muteRaceBtn')?.textContent.includes('Sound off'))return;try{const c=audioCtx();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type=wave;o.frequency.setValueAtTime(freq,c.currentTime);g.gain.setValueAtTime((state.settings.sfxVolume/100)*.12,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+duration);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+duration)}catch{}}
 function startMusic(){if(!state.settings.music||state.musicTimer)return;let n=0;const notes=[261.6,329.6,392,329.6,293.7,349.2,440,349.2];state.musicTimer=setInterval(()=>{if(state.currentRace?.paused||state.view!=='race')return;try{const c=audioCtx();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=notes[n++%notes.length];g.gain.value=(state.settings.musicVolume/100)*.035;o.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.3);o.stop(c.currentTime+.3)}catch{}},380)}
 function stopMusic(){if(state.musicTimer){clearInterval(state.musicTimer);state.musicTimer=null}}

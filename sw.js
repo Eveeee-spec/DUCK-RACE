@@ -1,5 +1,5 @@
 /* Duck Race offline cache. Keep this list in sync with the root files. */
-const CACHE_NAME = 'duck-race-cache-v1';
+const CACHE_NAME = 'duck-race-cache-v2';
 const APP_SHELL = [
   './',
   './index.html',
