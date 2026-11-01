@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#087fb5">
+  <meta name="description" content="A playful classroom rubber duck racing game.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./style.css">
+  <title>Duck Race — The Classroom Grand Prix</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="brand" data-view="home" aria-label="Duck Race home">
+        <span class="brand-duck" aria-hidden="true">◉</span>
+        <span><strong>DUCK RACE</strong><small>THE CLASSROOM GRAND PRIX</small></span>
+      </button>
+      <div class="top-actions">
+        <span class="offline-pill" id="connectionStatus">● READY TO RACE</span>
+        <button class="icon-button" id="installBtn" hidden>＋ Install</button>
+        <button class="icon-button" id="soundToggle" aria-label="Toggle sound">♫ Sound</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="homeView" class="view active">
+        <div class="hero">
+          <div class="hero-copy">
+            <span class="eyebrow"><span class="pulse-dot"></span> CLASSROOM GRAND PRIX</span>
+            <h1>Ready, Set,<br><em>QUACK!</em></h1>
+            <p class="hero-tag">Every duck has a chance. Only one crosses the finish line first.</p>
+            <div class="hero-buttons">
+              <button class="btn btn-primary btn-xl" id="startIndividual">🏁 Start individual race</button>
+              <button class="btn btn-light btn-xl" id="startGroup">👥 Start group race</button>
+            </div>
+            <div class="hero-stats">
+              <div><strong id="homeRaceCount">0</strong><span>RACES RUN</span></div>
+              <div><strong id="homeParticipantCount">0</strong><span>PARTICIPANTS</span></div>
+              <div><strong id="homeWinner">—</strong><span>LAST CHAMPION</span></div>
+            </div>
+          </div>
+          <div class="hero-scene" aria-label="Illustration of a rubber duck racing on water">
+            <div class="sun-glow"></div><div class="flag flag-one">🏁</div><div class="flag flag-two">🏁</div>
+            <div class="scene-bubble b1"></div><div class="scene-bubble b2"></div><div class="scene-bubble b3"></div>
+            <div class="hero-water water-lines"></div>
+            <div class="hero-duck" id="heroDuck"></div>
+            <div class="scene-buoy buoy-a"></div><div class="scene-buoy buoy-b"></div>
+            <div class="scene-caption">LANE 01 <span>•</span> FULL STEAM AHEAD</div>
+          </div>
+        </div>
+        <div class="section-heading"><div><span class="eyebrow">YOUR RACE CONTROL</span><h2>Pick your race</h2></div><span class="muted">Made for big classroom energy</span></div>
+        <div class="feature-grid">
+          <button class="feature-card feature-yellow" data-view="setup" data-mode="individual"><span class="feature-icon">🏆</span><span class="feature-title">Individual Race</span><span>One duck per student. One champion of the pond.</span><b>SET UP RACE ↗</b></button>
+          <button class="feature-card feature-blue" data-view="setup" data-mode="group"><span class="feature-icon">🦆</span><span class="feature-title">Group Race</span><span>Build teams, pick group names, and race together.</span><b>BUILD YOUR TEAMS ↗</b></button>
+          <button class="feature-card feature-coral" data-view="participants"><span class="feature-icon">✎</span><span class="feature-title">Manage Participants</span><span>Keep class lists and rosters ready to go.</span><b>OPEN ROSTER ↗</b></button>
+          <button class="feature-card feature-purple" data-view="history"><span class="feature-icon">◷</span><span class="feature-title">Race History</span><span>Celebrate past winners and export your results.</span><b>VIEW RESULTS ↗</b></button>
+          <button class="feature-card feature-blue" data-view="settings"><span class="feature-icon">⚙</span><span class="feature-title">Settings & Backup</span><span>Control sound, tune volumes, and back up classroom data.</span><b>PERSONALIZE ↗</b></button>
+        </div>
+        <div class="bottom-panels">
+          <div class="panel quick-panel"><div class="panel-heading"><div><span class="eyebrow">QUICK LOOK</span><h3>Recent races</h3></div><button class="text-button" data-view="history">View all →</button></div><div id="recentRaces" class="recent-list"><p class="empty-state">Your race highlights will show up here.</p></div></div>
+          <div class="panel tips-panel"><div class="tips-icon">💡</div><span class="eyebrow">TEACHER TIP</span><h3>Make every race a learning moment.</h3><p>Use individual races for quick turn-taking, or build balanced teams for collaboration. Every race uses a fresh random simulation.</p><button class="btn btn-dark" data-view="setup" data-mode="group">Build a group race</button></div>
+        </div>
+      </section>
+
+      <section id="participantsView" class="view">
+        <div class="page-heading"><div><span class="eyebrow">RACE CONTROL</span><h1>Participant <em>roster</em></h1><p>Add your class once, then use it for both race modes.</p></div><div class="heading-actions"><button class="btn btn-light" data-view="home">← Home</button></div></div>
+        <div class="roster-layout">
+          <div class="panel">
+            <div class="panel-heading"><div><h3>Build your class list</h3><p class="muted">Names are saved on this device.</p></div><span class="count-badge" id="rosterCount">0 students</span></div>
+            <label class="field-label" for="singleName">Add one participant</label>
+            <div class="inline-form"><input id="singleName" type="text" maxlength="80" placeholder="Enter student name"><button class="btn btn-primary" id="addNameBtn">＋ Add</button></div>
+            <label class="field-label" for="bulkNames">Or paste a complete class list</label>
+            <textarea id="bulkNames" rows="6" placeholder="One name per line&#10;Alex Santos&#10;Jamie Cruz&#10;Taylor Reyes"></textarea>
+            <div class="form-actions"><button class="btn btn-primary" id="addBulkBtn">Add names from list</button><button class="btn btn-light" id="clearBulkBtn">Clear box</button></div>
+            <div class="divider"></div>
+            <div class="panel-heading"><h3>Class rosters</h3></div>
+            <div class="inline-form"><input id="rosterName" type="text" maxlength="50" placeholder="e.g. Grade 5 - Section A"><button class="btn btn-light" id="saveRosterBtn">Save current</button></div>
+            <div id="savedRosters" class="saved-rosters"></div>
+          </div>
+          <div class="panel roster-list-panel">
+            <div class="panel-heading"><div><h3>Your participants</h3><p class="muted">Duplicates are allowed and kept as separate entries.</p></div></div>
+            <div class="inline-form search-form"><input id="participantSearch" type="search" placeholder="Search names…"><button class="btn btn-light" id="shuffleRosterBtn">⤨ Shuffle</button></div>
+            <div id="participantList" class="participant-list"></div>
+            <div class="roster-footer"><span id="rosterFooterCount">0 participants</span><button class="text-button danger-text" id="clearRosterBtn">Clear class list</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="setupView" class="view">
+        <div class="page-heading"><div><span class="eyebrow">RACE CONTROL</span><h1>Set up the <em>race</em></h1><p>Choose your racers and tune the race-day excitement.</p></div><button class="btn btn-light" data-view="home">← Home</button></div>
+        <div class="setup-layout">
+          <div class="panel setup-main">
+            <div class="mode-switch"><button id="individualModeBtn" class="mode-option active">🦆 Individual</button><button id="groupModeBtn" class="mode-option">👥 Groups</button></div>
+            <div id="individualSetup">
+              <div class="panel-heading"><div><h3>Student racers</h3><p class="muted">Each student gets their own duck and lane.</p></div><span class="count-badge" id="individualCount">0 ducks</span></div>
+              <div id="individualPreview" class="racer-preview"></div>
+              <div class="form-actions"><button class="btn btn-light" id="shufflePositionsBtn">⤨ Shuffle starting positions</button><label class="check-label"><input type="checkbox" id="compactMode"> Compact lanes</label></div>
+            </div>
+            <div id="groupSetup" hidden>
+              <div class="panel-heading"><div><h3>Build your teams</h3><p class="muted">Every student is assigned to one group.</p></div><span class="count-badge" id="groupCount">0 groups</span></div>
+              <div class="field-label">How should we make groups?</div>
+              <div class="group-method"><label><input type="radio" name="groupMethod" value="count" checked> Number of groups</label><label><input type="radio" name="groupMethod" value="size"> Members per group</label></div>
+              <div class="inline-form group-controls"><input id="groupAmount" type="number" min="1" max="40" value="5"><button class="btn btn-primary" id="generateGroupsBtn">✨ Generate groups</button></div>
+              <label class="check-label"><input type="checkbox" id="lockGroups"> 🔒 Lock groups after generating</label>
+              <div id="groupsEditor" class="groups-editor"></div>
+              <div class="form-actions"><button class="btn btn-light" id="regenerateGroupsBtn">Regenerate groups</button><button class="btn btn-light" id="saveGroupsBtn">Save arrangement</button></div>
+              <div id="savedGroups" class="saved-rosters"></div>
+            </div>
+          </div>
+          <aside class="panel settings-panel">
+            <span class="eyebrow">RACE DAY SETTINGS</span><h3>Set the vibe</h3>
+            <label class="field-label" for="durationSetting">Race duration <strong id="durationValue">25 sec</strong></label><input id="durationSetting" type="range" min="12" max="60" value="25">
+            <label class="field-label" for="speedSetting">Race speed <strong id="speedValue">Standard</strong></label><input id="speedSetting" type="range" min="1" max="3" value="2">
+            <label class="field-label" for="intensitySetting">Race intensity</label><select id="intensitySetting"><option value="casual">Casual — gentle splashes</option><option value="standard" selected>Standard — race-day action</option><option value="chaotic">Chaotic — maximum quacktion</option></select>
+            <label class="field-label" for="eventSetting">Random event frequency <strong id="eventValue">Normal</strong></label><input id="eventSetting" type="range" min="0" max="3" value="2">
+            <label class="check-label"><input type="checkbox" id="soundSetting" checked> Sound effects enabled</label>
+            <label class="check-label"><input type="checkbox" id="musicSetting"> Ambient music enabled</label>
+            <button class="btn btn-primary btn-xl full-width" id="previewRaceBtn">Preview the racers →</button>
+            <p class="tiny-note">Every race gets a fresh random simulation. No winner is selected in advance.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section id="raceView" class="view race-view">
+        <div class="race-topline"><button class="btn btn-glass" id="raceHomeBtn">← Exit arena</button><div class="race-title"><span class="eyebrow">LIVE FROM THE POND</span><h2 id="raceTitle">THE CLASSROOM GRAND PRIX</h2></div><span class="live-badge" id="raceStatus">READY</span></div>
+        <div class="race-stage" id="raceStage">
+          <div class="stage-sky"><span class="stadium-light light-left"></span><span class="stadium-light light-right"></span><div class="stage-flags">🏁　　　　　　　　　🏁</div></div>
+          <div class="race-overlay" id="countdownOverlay"><span class="overlay-kicker">RACERS, TAKE YOUR POSITIONS!</span><strong id="countdownNumber">3</strong><span class="overlay-sub">GET READY TO QUACK</span></div>
+          <div class="race-banner" id="eventBanner"></div>
+          <div id="track" class="track"><div class="track-water"></div><div class="track-start"><span>START</span></div><div class="finish-line"><span>FINISH</span></div><div class="track-lanes" id="trackLanes"></div><div class="finish-confetti" id="finishConfetti"></div></div>
+          <div class="winner-overlay" id="winnerOverlay" hidden><div class="winner-card"><div class="winner-crown">♛</div><span class="eyebrow">THE POND HAS A CHAMPION</span><h2>WE HAVE A <em>WINNER!</em></h2><div id="winnerDuck" class="winner-duck"></div><h3 id="winnerName">Champion Duck</h3><p id="winnerSub">THE CHAMPION OF THE POND!</p><div id="podiumTop" class="podium-top"></div><div class="winner-actions"><button class="btn btn-primary" id="raceAgainBtn">↻ Race again</button><button class="btn btn-light" id="viewResultsBtn">Full results</button></div></div></div>
+        </div>
+        <div class="race-control-bar">
+          <div class="race-progress-wrap"><div class="progress-meta"><span id="progressLabel">READY ON THE STARTING LINE</span><strong id="progressPercent">0%</strong></div><div class="progress-track"><div id="progressFill"></div></div></div>
+          <div class="race-controls"><button class="btn btn-primary" id="goBtn">🏁 Start race</button><button class="btn btn-light" id="pauseBtn" disabled>Ⅱ Pause</button><button class="btn btn-light" id="restartBtn">↻ Restart</button><button class="btn btn-light" id="skipBtn">⏩ Skip to finish</button><button class="btn btn-light" id="fullScreenBtn">⛶ Fullscreen</button><button class="btn btn-light" id="muteRaceBtn">♫ Sound on</button></div>
+        </div>
+        <div class="race-lower">
+          <div class="panel race-leaderboard"><div class="panel-heading"><div><span class="eyebrow">LIVE STANDINGS</span><h3>Who's waddling ahead?</h3></div><span class="count-badge" id="leaderboardCount">0 racers</span></div><div id="leaderboard" class="leaderboard"></div></div>
+          <div class="panel race-events"><div class="panel-heading"><div><span class="eyebrow">POND REPORT</span><h3>Race events</h3></div></div><div id="eventLog" class="event-log"><p class="muted">The race announcer is ready…</p></div></div>
+        </div>
+      </section>
+
+      <section id="historyView" class="view">
+        <div class="page-heading"><div><span class="eyebrow">THE HALL OF QUACK</span><h1>Race <em>history</em></h1><p>Every finish, every champion, saved on this device.</p></div><button class="btn btn-light" data-view="home">← Home</button></div>
+        <div class="history-toolbar panel"><input id="historySearch" type="search" placeholder="Search winners or participants…"><select id="historyFilter"><option value="all">All race types</option><option value="individual">Individual races</option><option value="group">Group races</option></select><button class="btn btn-primary" id="exportCsvBtn">⇩ Export CSV</button><button class="btn btn-light danger-text" id="clearHistoryBtn">Clear history</button></div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+
+      <section id="resultsView" class="view">
+        <div class="page-heading"><div><span class="eyebrow">OFFICIAL RACE RESULTS</span><h1>Finish <em>line</em></h1><p id="resultsMeta">The results are in.</p></div><div class="heading-actions"><button class="btn btn-light" data-view="history">Race history</button><button class="btn btn-primary" id="resultsRaceAgain">Race again →</button></div></div>
+        <div id="resultsPodium" class="results-podium"></div>
+        <div class="panel results-table-panel"><div class="panel-heading"><h3>Official finishing order</h3><button class="btn btn-light" id="resultsExportBtn">⇩ Export CSV</button></div><div id="resultsTable" class="results-table"></div></div>
+      </section>
+
+      <section id="settingsView" class="view">
+        <div class="page-heading"><div><span class="eyebrow">PERSONALIZE YOUR POND</span><h1>App <em>settings</em></h1><p>Adjust the sound and classroom experience.</p></div><button class="btn btn-light" data-view="home">← Home</button></div>
+        <div class="settings-grid">
+          <div class="panel"><h3>Sound & celebration</h3><label class="check-label"><input type="checkbox" id="globalSound" checked> Enable sound effects</label><label class="field-label" for="sfxVolume">Sound effects volume <strong id="sfxVolumeText">55%</strong></label><input type="range" id="sfxVolume" min="0" max="100" value="55"><label class="field-label" for="musicVolume">Music volume <strong id="musicVolumeText">18%</strong></label><input type="range" id="musicVolume" min="0" max="100" value="18"><label class="check-label"><input type="checkbox" id="globalMusic"> Ambient music</label></div>
+          <div class="panel"><h3>Data & privacy</h3><p class="muted">Your participant lists and race results stay in this browser's local storage. They are not sent to a server.</p><button class="btn btn-light" id="downloadBackupBtn">⇩ Download data backup</button><label class="btn btn-light file-label">⇧ Import data backup<input type="file" id="importBackupInput" accept="application/json"></label><p class="tiny-note">Clearing browser data may remove saved rosters and results. Export a backup to keep a copy.</p></div>
+        </div>
+      </section>
+    </main>
+    <footer><span>🦆 DUCK RACE</span><span>Made for curious minds & classroom champions</span><span>Works offline after first visit</span></footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./script.js" defer></script>
+</body>
+</html>

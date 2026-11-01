@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Duck Race — The Classroom Grand Prix",
+  "short_name": "Duck Race",
+  "description": "A playful classroom rubber duck racing game.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4fbff",
+  "theme_color": "#087fb5",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
